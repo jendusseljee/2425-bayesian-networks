@@ -6,78 +6,71 @@ library(dagitty)
 data <- readRDS("processed_data.rds")
 
 # Rename Diabetes_binary to Diabetes
-data <- data %>% rename(Diabetes = Diabetes_binary)
+# data <- data %>% rename(Diabetes = Diabetes_binary)
 
 # Define your DAGitty graph without positions
-dag <- dagitty("dag {
-  Age
-  AnyHealthcare
-  BMI
-  Diabetes
-  Education
-  HealthyEating
-  HighBP
-  HighChol
-  HvyAlcoholConsump
-  Income
-  PhysActivity
-  Sex
-  Smoker
-  Age -> AnyHealthcare
-  Age -> BMI
-  Age -> Diabetes
-  Age -> Education
-  Age -> HighBP
-  Age -> HighChol
-  Age -> Income
-  AnyHealthcare -> Diabetes
-  AnyHealthcare -> HvyAlcoholConsump
-  AnyHealthcare -> Smoker
-  BMI -> Diabetes
-  BMI -> HighBP
-  BMI -> HighChol
-  Education -> AnyHealthcare
-  Education -> HealthyEating
-  Education -> HvyAlcoholConsump
-  Education -> Income
-  Education -> PhysActivity
-  Education -> Smoker
-  HealthyEating -> BMI
-  HealthyEating -> Diabetes
-  HealthyEating -> HighBP
-  HealthyEating -> HighChol
-  HighBP -> Diabetes
-  HighChol -> Diabetes
-  HighChol -> HighBP
-  HvyAlcoholConsump -> BMI
-  HvyAlcoholConsump -> HighBP
-  HvyAlcoholConsump -> HighChol
-  Income -> AnyHealthcare
-  Income -> HealthyEating
-  Income -> HvyAlcoholConsump
-  Income -> Smoker
-  PhysActivity -> BMI
-  PhysActivity -> Diabetes
-  PhysActivity -> HighBP
-  PhysActivity -> HighChol
-  PhysActivity -> Income
-  Sex -> AnyHealthcare
-  Sex -> BMI
-  Sex -> Diabetes
-  Sex -> Education
-  Sex -> HealthyEating
-  Sex -> HighChol
-  Sex -> HvyAlcoholConsump
-  Sex -> Income
-  Sex -> PhysActivity
-  Sex -> Smoker
-  Smoker -> Diabetes
-  Smoker -> HighBP
-  Smoker -> HighChol
-}")
+dag <- dagitty('dag {
+bb="-3.515,-2.393,3.029,2.184"
+Age [pos="-1.281,0.323"]
+AnyHealthcare [pos="1.005,-0.399"]
+BMI [pos="-1.068,-1.389"]
+Diabetes [pos="-0.377,1.684"]
+Education [pos="0.594,1.358"]
+HealthyEating [pos="-2.969,-0.185"]
+HvyAlcoholConsump [pos="1.620,-0.969"]
+Income [pos="-0.267,-1.012"]
+PhysActivity [pos="-2.558,1.594"]
+Sex [pos="0.101,0.038"]
+Smoker [pos="2.209,1.143"]
+Age -> AnyHealthcare
+Age -> BMI
+Age -> Diabetes
+Age -> Education
+Age -> HealthyEating
+Age -> Income
+Age -> PhysActivity
+Age -> Smoker
+AnyHealthcare -> Diabetes
+AnyHealthcare -> HvyAlcoholConsump
+AnyHealthcare -> Smoker
+BMI -> Diabetes
+Education -> AnyHealthcare
+Education -> BMI
+Education -> Diabetes
+Education -> HealthyEating
+Education -> HvyAlcoholConsump
+Education -> Income
+Education -> PhysActivity
+Education -> Smoker
+HealthyEating -> BMI
+HealthyEating -> Diabetes
+HvyAlcoholConsump -> BMI
+HvyAlcoholConsump -> Smoker
+Income -> AnyHealthcare
+Income -> BMI
+Income -> Diabetes
+Income -> HealthyEating
+Income -> HvyAlcoholConsump
+Income -> Smoker
+PhysActivity -> BMI
+PhysActivity -> Diabetes
+PhysActivity -> HealthyEating
+PhysActivity -> Income
+Sex -> AnyHealthcare
+Sex -> BMI
+Sex -> Diabetes
+Sex -> Education
+Sex -> HealthyEating
+Sex -> HvyAlcoholConsump
+Sex -> Income
+Sex -> PhysActivity
+Sex -> Smoker
+Smoker -> Diabetes
+}
+')
 
 dag_variables <- c("Age", "AnyHealthcare", "BMI", "Diabetes", "Education", 
-                   "HealthyEating", "HighBP", "HighChol", "HvyAlcoholConsump", 
+                   "HealthyEating", "HvyAlcoholConsump", 
                    "Income", "PhysActivity", "Sex", "Smoker")
 # Remove extra variables not in the DAG
 data <- data %>%
@@ -91,10 +84,26 @@ dag_bnlearn_string <- toString(dag, "bnlearn")
 bn_network <- model2network(dag_bnlearn_string)
 
 # Fit the network with MLE using your preprocessed data
-fit <- bn.fit(bn_network, data = data)
+fit <- bn.fit(bn_network, data = data, method="mle")
 
 # Inspect the fitted network
 print(fit)
+
+d <- read.csv('cdc_diabetes_health_indicators_train2.csv')
+
+d_scaled <- as.data.frame(scale(d))
+
+model = sem(toString(dag, "lavaan"), data = d)
+
+library(semPlot)
+library(lavaan)
+
+semPaths(model, 
+        what = "std",  # Show standardized coefficients
+        edge.label.cex = 0.5,
+        node.label.cex = 0.8,
+        residuals = FALSE,
+        layout = "circle")
 
 
 
@@ -112,4 +121,18 @@ for (node in names(fit)) {
   print(fit[[node]])
 }
 
+d <- read.csv('cdc_diabetes_health_indicators_train2.csv')
+# 1. First, make sure all variables are properly scaled
 
+d_scaled <- as.data.frame(scale(d))
+
+model <- sem(toString(dag, "lavaan"), d_scaled)
+
+semPaths(model,
+         what = "std",
+         #edge.width = abs(coefs$est.std) * 5,  # Width proportional to effect size
+         residuals = FALSE,
+         layout = "circle",
+         standardized = TRUE)
+
+summary(model, standardized=TRUE)

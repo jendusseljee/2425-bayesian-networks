@@ -1,45 +1,101 @@
-d <- read.csv('cdc_diabetes_health_indicators.csv')
+d <- read.csv('cdc_diabetes_health_indicators_train1.csv')
+
+d_scaled <- as.data.frame(scale(d))
 
 library(dagitty)
 
 g <- dagitty('dag {
-bb="0,0,1,1"
-Age [pos="0.115,0.645"]
-AnyHealthcare [pos="0.116,0.921"]
-BMI [pos="0.608,0.507"]
-Diabetes [pos="0.693,0.677"]
-EatsHealthy [pos="0.412,0.513"]
-Education [pos="0.797,0.927"]
-HighBP [pos="0.130,0.367"]
-HighChol [pos="0.310,0.450"]
-HvyAlcoholConsump [pos="0.178,0.213"]
-Income [pos="0.082,0.770"]
-NoDocbcCost [pos="0.350,0.750"]
-PhysActivity [pos="0.743,0.242"]
-Sex [pos="0.064,0.563"]
-Smoker [pos="0.592,0.364"]
+bb="-2.621,-3.082,3.664,3.551"
+Age [pos="-1.494,-1.252"]
+AnyHealthcare [pos="-2.097,0.895"]
+BMI [pos="0.870,-1.662"]
+Diabetes [pos="2.630,0.800"]
+Education [pos="1.446,-0.043"]
+HealthyEating [pos="1.238,-0.719"]
+HvyAlcoholConsump [pos="-0.777,1.771"]
+Income [pos="-0.232,-0.364"]
+PhysActivity [pos="3.140,-0.758"]
+Sex [pos="0.859,1.183"]
+Smoker [pos="2.376,1.715"]
+Age -> AnyHealthcare
+Age -> BMI
 Age -> Diabetes
-Age -> HighBP
-Age -> HighChol
+Age -> Education
+Age -> Income
+AnyHealthcare -> Diabetes
+AnyHealthcare -> HvyAlcoholConsump
+AnyHealthcare -> Smoker
 BMI -> Diabetes
-BMI -> HighBP
-EatsHealthy -> BMI
+Education -> AnyHealthcare
+Education -> HealthyEating
+Education -> HvyAlcoholConsump
 Education -> Income
 Education -> PhysActivity
-HighChol -> HighBP
-HvyAlcoholConsump -> HighBP
+Education -> Smoker
+HealthyEating -> BMI
+HealthyEating -> Diabetes
+HvyAlcoholConsump -> BMI
 Income -> AnyHealthcare
-Income -> NoDocbcCost
+Income -> HealthyEating
+Income -> HvyAlcoholConsump
+Income -> PhysActivity
+Income -> Smoker
 PhysActivity -> BMI
-PhysActivity -> HighBP
+PhysActivity -> Diabetes
+Sex -> AnyHealthcare
+Sex -> BMI
+Sex -> Diabetes
+Sex -> Education
+Sex -> HealthyEating
+Sex -> HvyAlcoholConsump
 Sex -> Income
-Smoker -> HighBP
-Smoker -> HighChol
-}')
-plot(g)
+Sex -> PhysActivity
+Sex -> Smoker
+Smoker -> Diabetes
+}
+')
+# plot(g)
+
+
+
+plotLocalTestResults( localTests( g, d_scaled, type="cis" ))
+plotLocalTestResults( localTests( g, d, type="cis.chisq" ))
+
 
 library(lavaan)
 
 model <- sem(toString(g, "lavaan"), d)
 
-plotLocalTestResults( localTests( g, d, type="cis.chisq" ) )
+summary(model, standardized = TRUE, fit.measures = TRUE)
+
+library(semPlot)
+
+coefs <- standardizedSolution(model)
+
+# Color-coded paths
+semPaths(model,
+         what = "est",
+         edge.label.cex = 0.5,
+         node.label.cex = 0.8,
+         edge.color = c("blue", "red")[1 + (coefs$est.std < 0)],  # Blue positive, red negative
+         #edge.width = abs(coefs$est.std) * 5,  # Width proportional to effect size
+         residuals = FALSE,
+         #layout = "tree",
+         standardized = TRUE)
+
+
+
+
+d <- read.csv('cdc_diabetes_health_indicators_train2.csv')
+# 1. First, make sure all variables are properly scaled
+
+d_scaled <- as.data.frame(scale(d))
+
+model <- sem(toString(g, "lavaan"), d_scaled)
+
+semPaths(model,
+         what = "std",
+         #edge.width = abs(coefs$est.std) * 5,  # Width proportional to effect size
+         residuals = FALSE,
+         layout = "circle",
+         standardized = TRUE)
