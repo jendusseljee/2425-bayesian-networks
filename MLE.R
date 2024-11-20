@@ -136,3 +136,37 @@ semPaths(model,
          standardized = TRUE)
 
 summary(model, standardized=TRUE)
+
+
+
+
+
+
+
+
+effects <- parameterEstimates(model, standardized = TRUE)
+
+# Filter and show direct effects for Diabetes
+direct_effects <- effects[effects$lhs == "Diabetes" & effects$op == "~", ]
+print("Direct Effects on Diabetes:")
+print(direct_effects)
+
+
+# Filter and show indirect effects through mediators
+indirect_effects <- effects[effects$lhs %in% c("BMI", "HealthyEating", "PhysActivity") &
+                              effects$op == "~" & 
+                              effects$rhs %in% c("Income", "Education"), ]
+print("Indirect Effects via Mediators:")
+print(indirect_effects)
+
+
+# Summarize total effects (direct + indirect) for each predictor
+total_effects <- merge(
+  direct_effects[, c("rhs", "est")],
+  aggregate(est ~ rhs, data = indirect_effects, sum),
+  by = "rhs", all = TRUE
+)
+colnames(total_effects) <- c("Predictor", "Direct_Effect", "Indirect_Effect")
+total_effects$Total_Effect <- rowSums(total_effects[, c("Direct_Effect", "Indirect_Effect")], na.rm = TRUE)
+print("Total Effects on Diabetes:")
+print(total_effects)
