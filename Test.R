@@ -3,17 +3,20 @@ d <- read.csv('cdc_diabetes_health_indicators_train1.csv')
 d_scaled <- as.data.frame(scale(d))
 
 library(dagitty)
+library(bnlearn)
+library(gRain)
 
-g <- dagitty('dag {
+g <- dagitty('
+dag {
 bb="-2.621,-3.082,3.664,3.551"
 Age [pos="-1.494,-1.252"]
 AnyHealthcare [pos="-2.097,0.895"]
 BMI [pos="0.870,-1.662"]
 Diabetes [pos="2.630,0.800"]
-Education [pos="1.446,-0.043"]
-HealthyEating [pos="1.238,-0.719"]
+Education [pos="0.662,0.063"]
+HealthyEating [pos="1.430,-0.725"]
 HvyAlcoholConsump [pos="-0.777,1.771"]
-Income [pos="-0.232,-0.364"]
+Income [pos="-0.616,0.002"]
 PhysActivity [pos="3.140,-0.758"]
 Sex [pos="0.859,1.183"]
 Smoker [pos="2.376,1.715"]
@@ -21,12 +24,17 @@ Age -> AnyHealthcare
 Age -> BMI
 Age -> Diabetes
 Age -> Education
+Age -> HealthyEating
 Age -> Income
+Age -> PhysActivity
+Age -> Smoker
 AnyHealthcare -> Diabetes
 AnyHealthcare -> HvyAlcoholConsump
 AnyHealthcare -> Smoker
 BMI -> Diabetes
 Education -> AnyHealthcare
+Education -> BMI
+Education -> Diabetes
 Education -> HealthyEating
 Education -> HvyAlcoholConsump
 Education -> Income
@@ -35,13 +43,17 @@ Education -> Smoker
 HealthyEating -> BMI
 HealthyEating -> Diabetes
 HvyAlcoholConsump -> BMI
+HvyAlcoholConsump -> Smoker
 Income -> AnyHealthcare
+Income -> BMI
+Income -> Diabetes
 Income -> HealthyEating
 Income -> HvyAlcoholConsump
 Income -> PhysActivity
 Income -> Smoker
 PhysActivity -> BMI
 PhysActivity -> Diabetes
+PhysActivity -> HealthyEating
 Sex -> AnyHealthcare
 Sex -> BMI
 Sex -> Diabetes
