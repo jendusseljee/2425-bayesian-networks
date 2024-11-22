@@ -68,9 +68,9 @@ Smoker -> Diabetes
 ')
 # plot(g)
 
+d_scaled$Age <- ordered(d_scaled$Age)
 
-
-plotLocalTestResults( localTests( g, d_scaled, type="cis" ))
+plotLocalTestResults( localTests( g, df, type="cis" ))
 plotLocalTestResults( localTests( g, d, type="cis.chisq" ))
 
 

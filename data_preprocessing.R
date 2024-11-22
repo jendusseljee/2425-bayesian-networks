@@ -20,23 +20,12 @@ data <- data %>%
                         labels = c("No", "Yes"), 
                         ordered = TRUE)))
 
-# Handle Diabetes separately as it has different levels
+
 data$Diabetes <- factor(data$Diabetes, 
                         levels = c(0, 1), 
-                        labels = c("No", "Yes"), 
-                        ordered = TRUE)
+                        labels = c("No", "Yes"))
 
-# Discretize BMI into categories and convert it to an ordered factor
-data$BMI <- cut(data$BMI, 
-                breaks = c(0, 18.5, 24.9, 29.9, 40), 
-                labels = c("Underweight", "Normal", "Overweight", "Obese"), 
-                ordered_result = TRUE)
-
-# Convert other categorical variables to ordered factors
-data$GenHlth <- factor(data$GenHlth, 
-                       levels = 1:5, 
-                       labels = c("Excellent", "Very Good", "Good", "Fair", "Poor"),
-                       ordered = TRUE)
+data$BMI <- as.numeric(data$BMI)
 
 data$Age <- factor(data$Age, 
                    levels = 1:13,
@@ -68,7 +57,7 @@ data$HealthyEating <- factor(data$HealthyEating,
                              ordered = TRUE)
 
 # Save the preprocessed data as an RDS file
-saveRDS(data, "processed_data.rds")
+saveRDS(data, "processed_data_train2.rds")
 
 # View structure of the preprocessed data
 str(data)
