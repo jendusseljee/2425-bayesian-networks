@@ -259,3 +259,90 @@ semPaths(fit,
          layout="spring")
 
 summary(fit)
+
+
+
+
+#####
+
+# Find all directed paths from Income to Diabetes
+paths_income <- paths(heavily_pruned_g, from = "Income", to = "Diabetes")
+open_paths_income <- paths_income$paths[paths_income$open]
+
+# Print only the open paths
+cat("Open paths from Income to Diabetes:\n")
+print(open_paths_income)
+
+# Find all directed paths from Education to Diabetes
+paths_education <- paths(heavily_pruned_g, from = "Education", to = "Diabetes")
+open_paths_education <- paths_education$paths[paths_education$open]
+
+# Print only the open paths
+cat("Open paths from Income to Diabetes:\n")
+print(open_paths_education)
+
+
+#####
+
+# Extract parameter estimates
+effects <- parameterEstimates(fit, standardized = TRUE)
+
+# Direct effects on Diabetes
+direct_effects <- effects[effects$lhs == "Diabetes" & effects$op == "~", ]
+print("Direct Effects on Diabetes:")
+print(direct_effects)
+
+# Indirect effects via all mediators
+all_mediators <- c("BMI", "HealthyEating", "PhysActivity", "Income")  # Include all mediators
+indirect_effects <- effects[
+  effects$lhs %in% all_mediators & 
+    effects$rhs %in% c("Income", "Education") & 
+    effects$op == "~", ]
+
+print("Indirect Effects via Mediators:")
+print(indirect_effects)
+
+# Contributions of mediators to Diabetes
+mediator_to_diabetes <- effects[
+  effects$lhs == "Diabetes" & 
+    effects$rhs %in% all_mediators & 
+    effects$op == "~", ]
+
+print("Mediator Contributions to Diabetes:")
+print(mediator_to_diabetes)
+
+# Combine pathways for indirect effects
+indirect_paths <- merge(
+  indirect_effects[, c("rhs", "lhs", "est")],  # Predictor -> Mediator
+  mediator_to_diabetes[, c("rhs", "est")],     # Mediator -> Diabetes
+  by.x = "lhs", by.y = "rhs"
+)
+
+# Calculate indirect effects: (Predictor -> Mediator) * (Mediator -> Diabetes)
+indirect_paths$Indirect_Effect <- indirect_paths$est.x * indirect_paths$est.y
+indirect_summary <- aggregate(Indirect_Effect ~ rhs, data = indirect_paths, sum)
+
+colnames(indirect_summary) <- c("Predictor", "Indirect_Effect")
+
+# Merge with direct effects
+total_effects <- merge(
+  direct_effects[, c("rhs", "est")],
+  indirect_summary,
+  by.x = "rhs", by.y = "Predictor",
+  all = TRUE
+)
+
+colnames(total_effects) <- c("Predictor", "Direct_Effect", "Indirect_Effect")
+total_effects$Total_Effect <- rowSums(total_effects[, c("Direct_Effect", "Indirect_Effect")], na.rm = TRUE)
+
+print("Total Effects on Diabetes:")
+print(total_effects)
+
+
+# Filter indirect paths for Education
+education_indirect_paths <- indirect_paths[indirect_paths$rhs == "Education", ]
+
+# Print the details of indirect paths for Education
+cat("Indirect Paths for Education:\n")
+print(education_indirect_paths)
+
