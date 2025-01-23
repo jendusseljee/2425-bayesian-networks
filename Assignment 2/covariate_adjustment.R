@@ -37,52 +37,64 @@ Sex -> Income
 }
 ')
 
-adj_g <- dagitty('dag {
-bb="-2.774,-2.794,2.771,2.514"
-Age [adjusted,pos="-1.637,-1.495"]
-BMI [pos="-0.467,-0.197"]
-Diabetes [outcome,pos="0.485,-2.294"]
-Education [adjusted,pos="-2.274,0.721"]
-HealthyEating [pos="1.215,-0.748"]
-Income [exposure,pos="-0.435,1.410"]
-PhysActivity [pos="0.868,0.613"]
-Sex [adjusted,pos="2.271,2.014"]
+lrn_g <- dagitty('dag {
+Age
+AnyHealthcare
+BMI
+Diabetes
+Education
+HealthyEating
+HvyAlcoholConsump
+Income
+PhysActivity
+Sex
+Smoker
+Age -> AnyHealthcare
 Age -> BMI
 Age -> Diabetes
 Age -> Education
-Age -> HealthyEating
+Age -> HvyAlcoholConsump
 Age -> Income
 Age -> PhysActivity
+Age -> Smoker
 BMI -> Diabetes
-Education -> BMI
-Education -> HealthyEating
+BMI -> PhysActivity
+BMI -> Smoker
+Diabetes -> PhysActivity
+Diabetes -> Smoker
+Education -> AnyHealthcare
+Education -> Diabetes
 Education -> Income
 Education -> PhysActivity
-HealthyEating -> BMI
+Education -> Smoker
+HealthyEating -> PhysActivity
+HvyAlcoholConsump -> BMI
+HvyAlcoholConsump -> Diabetes
+HvyAlcoholConsump -> Income
+HvyAlcoholConsump -> Smoker
+Income -> AnyHealthcare
 Income -> BMI
 Income -> Diabetes
-Income -> HealthyEating
 Income -> PhysActivity
-PhysActivity -> BMI
-PhysActivity -> Diabetes
-PhysActivity -> HealthyEating
+Income -> Smoker
+PhysActivity -> Smoker
 Sex -> BMI
+Sex -> Diabetes
+Sex -> Education
 Sex -> HealthyEating
 Sex -> Income
-}
-')
+Sex -> PhysActivity
+Sex -> Smoker
+}')
 
 plot(g)
-plot(adj_g)
+plot(lrn_g)
 
 train_data <- readRDS("processed_data_train1.rds")
-test_data <- readRDS("processed_data_test.rds")
-
-print(train_data)
 
 M <- lavCor(train_data)
 
-fit <- sem( toString(adj_g,"lavaan"), sample.cov=M, sample.nobs=nrow(data) )
+fit <- sem( toString(g,"lavaan"), sample.cov=M, sample.nobs=nrow(train_data) )
 
 semPaths(fit, 
          what = "std", 
@@ -95,10 +107,31 @@ summary(fit)
 
 adjustment_sets <- adjustmentSets(g, exposure = "Income", outcome = "Diabetes")
 
+print(adjustment_sets)
+
 n <- glm(Income ~ Diabetes, train_data, family="binomial")
 coef(n)[1:2]
 
 m <- glm(Income ~ Diabetes + Age + Sex + Education, train_data, family="binomial")
 coef(m)[1:2]
 
-print(m)
+fit_lrn <- sem( toString(lrn_g, "lavaan"), sample.cov=M, sample.nobs=nrow(train_data))
+
+semPaths(fit_lrn, 
+         what = "std", 
+         edge.label.cex = 0.5,
+         node.label.cex = 0.8,
+         residuals = FALSE,
+         layout = "circle")
+
+summary(fit_lrn)
+
+adjustment_sets_lrn <- adjustmentSets(lrn_g, exposure = "Income", outcome = "Diabetes")
+
+print(adjustment_sets_lrn)
+
+n_lrn <- glm(Income ~ Diabetes, train_data, family="binomial")
+coef(n_lrn)[1:2]
+
+m_lrn <- glm(Income ~ Diabetes + Age + Sex + Education + HvyAlcoholConsump, train_data, family="binomial")
+coef(m_lrn)[1:2]
