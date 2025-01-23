@@ -4,15 +4,10 @@ library(dplyr)
 # Load the dataset
 data <- read.csv('cdc_diabetes_health_indicators_train2.csv')
 
-# Remove MentHlth and PhysHlth columns
-data <- data %>%
-  select(-MentHlth, -PhysHlth)
-
 # Convert binary variables to ordered factors
 # For binary health indicators, we'll use "No" and "Yes" as labels
-binary_vars <- c("HighBP", "HighChol", "Smoker", "Stroke", "HeartDiseaseorAttack", 
-                 "PhysActivity", "HvyAlcoholConsump", "AnyHealthcare", "NoDocbcCost", 
-                 "DiffWalk")
+binary_vars <- c("Smoker", 
+                 "PhysActivity", "HvyAlcoholConsump", "AnyHealthcare")
 
 data <- data %>%
   mutate(across(all_of(binary_vars), 
@@ -23,9 +18,15 @@ data <- data %>%
 
 data$Diabetes <- factor(data$Diabetes, 
                         levels = c(0, 1), 
-                        labels = c("No", "Yes"))
+                        labels = c("No", "Yes"),
+                        ordered = TRUE)
 
 data$BMI <- as.numeric(data$BMI)
+#data$BMI <- cut(data$BMI, 
+#                breaks = c(0, 18.5, 25, 30, 35, 40, Inf),
+#                labels = c("Underweight", "Normal", "Overweight", 
+#                           "Obese Class I", "Obese Class II", "Obese Class III"),
+#                ordered = TRUE)
 
 data$Age <- factor(data$Age, 
                    levels = 1:13,
@@ -48,11 +49,12 @@ data$Income <- factor(data$Income,
 # Convert Sex to a factor (not ordered since it's nominal)
 data$Sex <- factor(data$Sex, 
                    levels = c(0, 1), 
-                   labels = c("Female", "Male"))
+                   labels = c("Female", "Male"),
+                   ordered = TRUE)
 
 # Convert HealthyEating to an ordered factor
 data$HealthyEating <- factor(data$HealthyEating, 
-                             levels = 0:2, 
+                             levels = 1:3, 
                              labels = c("Low", "Medium", "High"), 
                              ordered = TRUE)
 
