@@ -7,65 +7,40 @@ library(dagitty)
 library(bnlearn)
 #library(gRain)
 
-g <- dagitty('
-dag {
-bb="-2.621,-3.082,3.664,3.551"
-Age [pos="-1.494,-1.252"]
-AnyHealthcare [pos="-2.097,0.895"]
-BMI [pos="0.870,-1.662"]
-Diabetes [pos="2.630,0.800"]
-Education [pos="0.662,0.063"]
-HealthyEating [pos="1.430,-0.725"]
-HvyAlcoholConsump [pos="-0.777,1.771"]
-Income [pos="-0.616,0.002"]
-PhysActivity [pos="3.140,-0.758"]
-Sex [pos="0.859,1.183"]
-Smoker [pos="2.376,1.715"]
-Age -> AnyHealthcare
+g <-dagitty('dag {
+bb="-3.394,-2.543,2.588,3.329"
+Age [pos="-1.421,-1.738"]
+BMI [pos="-0.496,1.200"]
+Diabetes [pos="-3.023,0.786"]
+Education [pos="-1.748,-0.584"]
+HealthyEating [pos="0.734,0.103"]
+Income [pos="-0.457,-0.574"]
+PhysActivity [pos="-1.555,0.560"]
+Sex [pos="-0.131,-1.694"]
 Age -> BMI
 Age -> Diabetes
 Age -> Education
 Age -> HealthyEating
 Age -> Income
 Age -> PhysActivity
-Age -> Smoker
-AnyHealthcare -> Diabetes
-AnyHealthcare -> HvyAlcoholConsump
-AnyHealthcare -> Smoker
 BMI -> Diabetes
-Education -> AnyHealthcare
 Education -> BMI
-Education -> Diabetes
 Education -> HealthyEating
-Education -> HvyAlcoholConsump
 Education -> Income
 Education -> PhysActivity
-Education -> Smoker
 HealthyEating -> BMI
-HealthyEating -> Diabetes
-HvyAlcoholConsump -> BMI
-HvyAlcoholConsump -> Smoker
-Income -> AnyHealthcare
 Income -> BMI
 Income -> Diabetes
 Income -> HealthyEating
-Income -> HvyAlcoholConsump
 Income -> PhysActivity
-Income -> Smoker
 PhysActivity -> BMI
 PhysActivity -> Diabetes
 PhysActivity -> HealthyEating
-Sex -> AnyHealthcare
 Sex -> BMI
-Sex -> Diabetes
-Sex -> Education
 Sex -> HealthyEating
-Sex -> HvyAlcoholConsump
 Sex -> Income
-Sex -> PhysActivity
-Sex -> Smoker
-Smoker -> Diabetes
 }
+')
 ')
 plot(g)
 bn_dag <- convert(g, "bnlearn")
